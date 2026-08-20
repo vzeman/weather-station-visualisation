@@ -1,0 +1,74 @@
+name: Sync & deploy Weather Archive
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+    inputs:
+      max_days:
+        description: "Maximum historic days to download in this run"
+        required: false
+        default: "365"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Download WeatherLink observations
+        if: github.event_name != 'push'
+        env:
+          WEATHERLINK_API_KEY: ${{ secrets.WEATHERLINK_API_KEY }}
+          WEATHERLINK_API_SECRET: ${{ secrets.WEATHERLINK_API_SECRET }}
+          WEATHERLINK_STATION_ID: ${{ vars.WEATHERLINK_STATION_ID }}
+          WEATHERLINK_START_DATE: ${{ vars.WEATHERLINK_START_DATE }}
+          SYNC_MAX_DAYS: ${{ inputs.max_days || '180' }}
+        run: node scripts/sync-weatherlink.mjs
+      - name: Save refreshed archive
+        if: github.event_name != 'push'
+        run: |
+          if git diff --quiet -- public/data/weather.json; then
+            echo "Archive is already current."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add public/data/weather.json
+            git commit -m "data: refresh WeatherLink archive"
+            git push
+          fi
+      - name: Configure GitHub Pages
+        id: pages
+        uses: actions/configure-pages@v5
+      - name: Test and build
+        env:
+          VITE_SITE_URL: ${{ steps.pages.outputs.base_url }}
+        run: npm test && npm run build
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

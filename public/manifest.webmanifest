@@ -1,0 +1,10 @@
+{
+  "name": "Weather Archive",
+  "short_name": "Wx Archive",
+  "description": "Long-term climate reports from your own WeatherLink station.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f3f1ea",
+  "theme_color": "#17352f",
+  "icons": []
+}
