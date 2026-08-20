@@ -170,19 +170,29 @@ export function seasonalRows(dataset: WeatherDataset, selectedYear: number) {
 
 export function dailyTemperatureClimatology(dataset: WeatherDataset, selectedYear: number) {
   const history = new Map<string, number[]>();
+  const selected = new Map<string, DailyWeather>();
   dataset.days.forEach((day) => {
-    if (yearOf(day) === selectedYear || !valid(day.tempAvgC) || day.date.endsWith("02-29")) return;
+    if (day.date.endsWith("02-29")) return;
     const key = day.date.slice(5);
+    if (yearOf(day) === selectedYear) {
+      selected.set(key, day);
+      return;
+    }
+    if (!valid(day.tempAvgC)) return;
     history.set(key, [...(history.get(key) ?? []), day.tempAvgC]);
   });
-  return daysForYear(dataset, selectedYear).filter((day) => !day.date.endsWith("02-29")).map((day, index) => {
-    const values = history.get(day.date.slice(5)) ?? [];
+  const calendar: string[] = [];
+  for (let date = new Date("2001-01-01T12:00:00Z"); date.getUTCFullYear() === 2001; date.setUTCDate(date.getUTCDate() + 1)) {
+    calendar.push(date.toISOString().slice(5, 10));
+  }
+  return calendar.map((key, index) => {
+    const values = history.get(key) ?? [];
     const low = percentile(values, 0.1);
     const high = percentile(values, 0.9);
     return {
       day: index + 1,
-      date: day.date,
-      selected: day.tempAvgC,
+      date: `${selectedYear}-${key}`,
+      selected: selected.get(key)?.tempAvgC ?? null,
       normal: average(values),
       low,
       band: valid(low) && valid(high) ? high - low : null,

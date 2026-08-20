@@ -23,7 +23,6 @@ import {
 } from "lucide-react";
 import {
   Area,
-  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
@@ -71,6 +70,7 @@ type Tab = "overview" | "rain" | "temperature" | "wind" | "data";
 const STORAGE_KEY = "weather-archive:dataset:v1";
 const LOCAL_MODE_KEY = "weather-archive:local-mode";
 const chartColors = ["#f16e4b", "#2f7d6e", "#7aa9a1", "#d8a72e", "#805d91", "#74a4d4"];
+const yAxisTick = { fill: "#777c75", fontSize: 9 };
 
 const fmt = (value: number | null | undefined, digits = 1) =>
   typeof value === "number" && Number.isFinite(value) ? value.toFixed(digits) : "—";
@@ -161,8 +161,8 @@ function YearProgressChart({ data, years, selectedYear, unit, digits = 1 }: {
   data: Array<Record<string, number>>; years: number[]; selectedYear: number; unit: string; digits?: number;
 }) {
   return <>
-    <div className="chart-wrap chart-tall"><ResponsiveContainer width="100%" height="100%"><LineChart data={data} margin={{ top: 10, right: 8, bottom: 0, left: -12 }}>
-      <CartesianGrid vertical={false} stroke="#e8e5dc"/><XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fill: "#7b7a73", fontSize: 11 }} tickFormatter={(day) => day % 60 === 1 ? `Day ${day}` : ""}/><YAxis tickLine={false} axisLine={false} tick={{ fill: "#7b7a73", fontSize: 11 }} unit={unit} width={unit === " km/h" ? 70 : 54}/>
+    <div className="chart-wrap chart-tall"><ResponsiveContainer width="100%" height="100%"><LineChart data={data} margin={{ top: 10, right: 8, bottom: 0, left: 8 }}>
+      <CartesianGrid vertical={false} stroke="#e8e5dc"/><XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fill: "#7b7a73", fontSize: 11 }} tickFormatter={(day) => day % 60 === 1 ? `Day ${day}` : ""}/><YAxis tickLine={false} axisLine={false} tick={yAxisTick} unit={unit} width={unit === " km/h" ? 82 : 68}/>
       <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #dedbd1" }} labelFormatter={(label) => `Day ${label}`} formatter={(value, name) => [`${fmt(Number(value), digits)}${unit}`, String(name)]}/>
       {years.map((candidate, index) => <Line key={candidate} type="monotone" dataKey={String(candidate)} stroke={chartColors[index]} strokeWidth={candidate === selectedYear ? 3 : 1.5} dot={false} opacity={candidate === selectedYear ? 1 : 0.5} connectNulls/>)}
     </LineChart></ResponsiveContainer></div>
@@ -195,10 +195,10 @@ function Overview({ dataset, year, days, summary }: {
       <Panel title="Rainfall through the year" eyebrow="Year-to-date comparison" className="chart-panel">
         <div className="chart-wrap chart-tall">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={ytdData} margin={{ top: 10, right: 8, bottom: 0, left: -16 }}>
+            <LineChart data={ytdData} margin={{ top: 10, right: 8, bottom: 0, left: 8 }}>
               <CartesianGrid vertical={false} stroke="#e8e5dc" />
               <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fill: "#7b7a73", fontSize: 11 }} tickFormatter={(d) => d % 60 === 1 ? `Day ${d}` : ""} />
-              <YAxis tickLine={false} axisLine={false} tick={{ fill: "#7b7a73", fontSize: 11 }} unit=" mm" width={68} />
+              <YAxis tickLine={false} axisLine={false} tick={yAxisTick} unit=" mm" width={78} />
               <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #dedbd1" }} labelFormatter={(label) => `Day ${label}`} />
               {years.map((candidate, index) => <Line key={candidate} type="monotone" dataKey={String(candidate)} stroke={chartColors[index]} strokeWidth={candidate === year ? 3 : 1.5} dot={false} opacity={candidate === year ? 1 : 0.55} connectNulls />)}
             </LineChart>
@@ -227,8 +227,8 @@ function Overview({ dataset, year, days, summary }: {
 
     <div className="dashboard-grid">
       <Panel title="Local climate trend" eyebrow="Annual mean temperature" className="chart-panel">
-        <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><ComposedChart data={annual} margin={{ top: 10, right: 8, left: -18 }}>
-          <CartesianGrid vertical={false} stroke="#e8e5dc"/><XAxis dataKey="year" axisLine={false} tickLine={false}/><YAxis axisLine={false} tickLine={false} unit="°" width={50}/>
+        <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><ComposedChart data={annual} margin={{ top: 10, right: 8, left: 8 }}>
+          <CartesianGrid vertical={false} stroke="#e8e5dc"/><XAxis dataKey="year" axisLine={false} tickLine={false}/><YAxis axisLine={false} tickLine={false} tick={yAxisTick} unit=" °C" width={68}/>
           <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #dedbd1" }} formatter={(value, name) => [`${fmt(Number(value))} °C`, String(name)]}/>
           <Line type="monotone" dataKey="tempTrendC" name="Annual mean" stroke="#e76745" strokeWidth={3} dot={{ r: 3, fill: "#e76745" }}/>
           {annual[0]?.tempNormal !== null && <ReferenceLine
@@ -273,8 +273,8 @@ function RainReport({ dataset, year, days, summary }: { dataset: WeatherDataset;
     </Panel>
     <div className="dashboard-grid">
       <Panel title="Monthly rainfall" eyebrow={`${year} distribution`} className="chart-panel">
-        <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><BarChart data={monthly} margin={{ top: 8, right: 8, left: -14 }}>
-          <CartesianGrid vertical={false} stroke="#e8e5dc" /><XAxis dataKey="month" axisLine={false} tickLine={false} /><YAxis axisLine={false} tickLine={false} unit=" mm" width={62} />
+        <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><BarChart data={monthly} margin={{ top: 8, right: 8, left: 8 }}>
+          <CartesianGrid vertical={false} stroke="#e8e5dc" /><XAxis dataKey="month" axisLine={false} tickLine={false} /><YAxis axisLine={false} tickLine={false} tick={yAxisTick} unit=" mm" width={78} />
           <Tooltip cursor={{ fill: "#f3f0e8" }} contentStyle={{ borderRadius: 12, border: "1px solid #dedbd1" }} formatter={(value) => [`${fmt(Number(value), 1)} mm`, "Rainfall"]} />
           <Bar dataKey="rainMm" fill="#377e9f" radius={[6, 6, 0, 0]} />
         </BarChart></ResponsiveContainer></div>
@@ -289,16 +289,16 @@ function RainReport({ dataset, year, days, summary }: { dataset: WeatherDataset;
     </div>
     <div className="dashboard-grid">
       <Panel title="Monthly rainfall vs local climate" eyebrow="Historical 10–90% range" className="chart-panel">
-        <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><ComposedChart data={climatology} margin={{ top: 8, right: 8, left: -14 }}>
-          <CartesianGrid vertical={false} stroke="#e8e5dc"/><XAxis dataKey="month" axisLine={false} tickLine={false}/><YAxis axisLine={false} tickLine={false} unit=" mm" width={62}/>
+        <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><ComposedChart data={climatology} margin={{ top: 8, right: 8, left: 8 }}>
+          <CartesianGrid vertical={false} stroke="#e8e5dc"/><XAxis dataKey="month" axisLine={false} tickLine={false}/><YAxis axisLine={false} tickLine={false} tick={yAxisTick} unit=" mm" width={78}/>
           <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #dedbd1" }} formatter={(value, name) => [`${fmt(Number(value), 0)} mm`, String(name)]}/>
           <Area dataKey="rainLow" stackId="rain-band" stroke="none" fill="transparent"/><Area name="Historical range" dataKey="rainBand" stackId="rain-band" stroke="none" fill="#b8d1d9" fillOpacity={0.55}/>
           <Bar name={`${year}`} dataKey="selectedRain" fill="#377e9f" radius={[5, 5, 0, 0]} barSize={18}/><Line name="Historical median" type="monotone" dataKey="rainMedian" stroke="#1d4037" strokeWidth={2.5} dot={false}/>
         </ComposedChart></ResponsiveContainer></div>
       </Panel>
       <Panel title="Rolling rainfall" eyebrow="Moisture over 30 and 90 days" className="chart-panel">
-        <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><LineChart data={rolling} margin={{ top: 8, right: 8, left: -14 }}>
-          <CartesianGrid vertical={false} stroke="#e8e5dc"/><XAxis dataKey="date" axisLine={false} tickLine={false} minTickGap={42} tickFormatter={(value) => String(value).slice(5, 7)}/><YAxis axisLine={false} tickLine={false} unit=" mm" width={62}/>
+        <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><LineChart data={rolling} margin={{ top: 8, right: 8, left: 8 }}>
+          <CartesianGrid vertical={false} stroke="#e8e5dc"/><XAxis dataKey="date" axisLine={false} tickLine={false} minTickGap={42} tickFormatter={(value) => String(value).slice(5, 7)}/><YAxis axisLine={false} tickLine={false} tick={yAxisTick} unit=" mm" width={78}/>
           <Tooltip labelFormatter={(value) => prettyDate(String(value))} formatter={(value, name) => [`${fmt(Number(value), 0)} mm`, name === "rain30" ? "30 days" : "90 days"]} contentStyle={{ borderRadius: 12, border: "1px solid #dedbd1" }}/>
           <Line type="monotone" dataKey="rain90" stroke="#8ab1bd" strokeWidth={2} dot={false}/><Line type="monotone" dataKey="rain30" stroke="#2f718d" strokeWidth={2.5} dot={false}/>
         </LineChart></ResponsiveContainer></div>
@@ -309,8 +309,8 @@ function RainReport({ dataset, year, days, summary }: { dataset: WeatherDataset;
     </Panel>
     <div className="dashboard-grid">
       <Panel title="Annual rainfall trend" eyebrow="Totals and local normal" className="chart-panel">
-        <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><ComposedChart data={annual} margin={{ top: 8, right: 8, left: -14 }}>
-          <CartesianGrid vertical={false} stroke="#e8e5dc"/><XAxis dataKey="year" axisLine={false} tickLine={false}/><YAxis axisLine={false} tickLine={false} unit=" mm" width={62}/>
+        <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><ComposedChart data={annual} margin={{ top: 8, right: 8, left: 8 }}>
+          <CartesianGrid vertical={false} stroke="#e8e5dc"/><XAxis dataKey="year" axisLine={false} tickLine={false}/><YAxis axisLine={false} tickLine={false} tick={yAxisTick} unit=" mm" width={78}/>
           <Tooltip formatter={(value) => `${fmt(Number(value), 0)} mm`} contentStyle={{ borderRadius: 12, border: "1px solid #dedbd1" }}/><Bar dataKey="rainTrendMm" name="Annual rainfall" fill="#377e9f" radius={[5, 5, 0, 0]}/>
           {annual[0]?.rainNormal !== null && <ReferenceLine
             y={annual[0]?.rainNormal ?? undefined}
@@ -321,8 +321,8 @@ function RainReport({ dataset, year, days, summary }: { dataset: WeatherDataset;
         </ComposedChart></ResponsiveContainer></div>
       </Panel>
       <Panel title="Daily rainfall distribution" eyebrow={`${year} · number of days`} className="chart-panel">
-        <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><BarChart data={distribution} margin={{ top: 8, right: 8, left: -20 }}>
-          <CartesianGrid vertical={false} stroke="#e8e5dc"/><XAxis dataKey="label" axisLine={false} tickLine={false}/><YAxis axisLine={false} tickLine={false}/><Tooltip formatter={(value) => [`${value} days`, "Frequency"]} contentStyle={{ borderRadius: 12, border: "1px solid #dedbd1" }}/><Bar dataKey="count" fill="#78a8b7" radius={[5, 5, 0, 0]}/>
+        <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><BarChart data={distribution} margin={{ top: 8, right: 8, left: 8 }}>
+          <CartesianGrid vertical={false} stroke="#e8e5dc"/><XAxis dataKey="label" axisLine={false} tickLine={false}/><YAxis axisLine={false} tickLine={false} tick={yAxisTick} width={46}/><Tooltip formatter={(value) => [`${value} days`, "Frequency"]} contentStyle={{ borderRadius: 12, border: "1px solid #dedbd1" }}/><Bar dataKey="count" fill="#78a8b7" radius={[5, 5, 0, 0]}/>
         </BarChart></ResponsiveContainer></div>
       </Panel>
     </div>
@@ -335,7 +335,7 @@ function RainReport({ dataset, year, days, summary }: { dataset: WeatherDataset;
 }
 
 function TemperatureReport({ dataset, year, days, summary }: { dataset: WeatherDataset; year: number; days: DailyWeather[]; summary: PeriodSummary }) {
-  const monthly = monthlyRows(dataset, year);
+  const tempClimatology = monthlyClimatology(dataset, year).map((row) => ({ ...row, tempBand: row.tempLow !== null && row.tempHigh !== null ? row.tempHigh - row.tempLow : null }));
   const frost = frostDates(days);
   const coldest = recordDay(days, "tempMinC", "min");
   const hottest = recordDay(days, "tempMaxC");
@@ -354,14 +354,14 @@ function TemperatureReport({ dataset, year, days, summary }: { dataset: WeatherD
       <YearProgressChart data={yearProgress} years={comparisonYears} selectedYear={year} unit=" °C"/>
     </Panel>
     <div className="dashboard-grid">
-      <Panel title="Temperature envelope" eyebrow={`${year} monthly range`} className="chart-panel">
-        <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><AreaChart data={monthly} margin={{ top: 8, right: 8, left: -18 }}>
-          <defs><linearGradient id="tempFill" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#ef7554" stopOpacity={0.35}/><stop offset="95%" stopColor="#ef7554" stopOpacity={0.02}/></linearGradient></defs>
-          <CartesianGrid vertical={false} stroke="#e8e5dc" /><XAxis dataKey="month" axisLine={false} tickLine={false} /><YAxis axisLine={false} tickLine={false} unit="°" width={48} />
-          <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #dedbd1" }} formatter={(value, name) => [`${fmt(Number(value))} °C`, String(name).replace("temp", "").replace("C", "")]} />
-          <Area type="monotone" dataKey="tempMaxC" stroke="#e76745" fill="url(#tempFill)" strokeWidth={2} /><Line type="monotone" dataKey="tempAvgC" stroke="#1d4037" strokeWidth={3} dot={false}/><Line type="monotone" dataKey="tempMinC" stroke="#4a86a1" strokeWidth={2} dot={false}/>
-        </AreaChart></ResponsiveContainer></div>
-        <div className="chart-legend"><span><i style={{ background: "#e76745" }}/>High</span><span><i style={{ background: "#1d4037" }}/>Mean</span><span><i style={{ background: "#4a86a1" }}/>Low</span></div>
+      <Panel title="Temperature envelope" eyebrow={`${year} vs full-year local climate`} className="chart-panel">
+        <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><ComposedChart data={tempClimatology} margin={{ top: 8, right: 8, left: 8 }}>
+          <CartesianGrid vertical={false} stroke="#e8e5dc" /><XAxis dataKey="month" axisLine={false} tickLine={false} /><YAxis axisLine={false} tickLine={false} tick={yAxisTick} unit=" °C" width={68} />
+          <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #dedbd1" }} formatter={(value, name) => [`${fmt(Number(value))} °C`, String(name)]} />
+          <Area dataKey="tempLow" stackId="temp-band" stroke="none" fill="transparent"/><Area name="Historical 10–90% range" dataKey="tempBand" stackId="temp-band" stroke="none" fill="#efad99" fillOpacity={0.35}/>
+          <Line name="Historical mean" type="monotone" dataKey="tempMean" stroke="#4a6c62" strokeWidth={2} dot={false}/><Line name={String(year)} type="monotone" dataKey="selectedTemp" stroke="#df6545" strokeWidth={3} dot={{ r: 3, fill: "#df6545" }} connectNulls={false}/>
+        </ComposedChart></ResponsiveContainer></div>
+        <div className="chart-legend"><span><i style={{ background: "#df6545" }}/>{year}</span><span><i style={{ background: "#4a6c62" }}/>Historical mean</span><span><i style={{ background: "#efad99" }}/>10–90% range</span></div>
       </Panel>
       <Panel title="Temperature records" eyebrow="Daily extremes">
         <div className="record-list">
@@ -372,8 +372,8 @@ function TemperatureReport({ dataset, year, days, summary }: { dataset: WeatherD
       </Panel>
     </div>
     <Panel title="The year against local climate" eyebrow="Daily mean · historical 10–90% range" className="chart-panel">
-      <div className="chart-wrap chart-tall"><ResponsiveContainer width="100%" height="100%"><ComposedChart data={dailyClimate} margin={{ top: 8, right: 8, left: -18 }}>
-        <CartesianGrid vertical={false} stroke="#e8e5dc"/><XAxis dataKey="date" axisLine={false} tickLine={false} minTickGap={50} tickFormatter={(value) => MONTHS[Number(String(value).slice(5, 7)) - 1]}/><YAxis axisLine={false} tickLine={false} unit="°" width={50}/>
+      <div className="chart-wrap chart-tall"><ResponsiveContainer width="100%" height="100%"><ComposedChart data={dailyClimate} margin={{ top: 8, right: 8, left: 8 }}>
+        <CartesianGrid vertical={false} stroke="#e8e5dc"/><XAxis dataKey="date" axisLine={false} tickLine={false} minTickGap={50} tickFormatter={(value) => MONTHS[Number(String(value).slice(5, 7)) - 1]}/><YAxis axisLine={false} tickLine={false} tick={yAxisTick} unit=" °C" width={68}/>
         <Tooltip labelFormatter={(value) => prettyDate(String(value))} formatter={(value, name) => [`${fmt(Number(value))} °C`, name === "selected" ? String(year) : name === "normal" ? "Historical mean" : "Historical range"]} contentStyle={{ borderRadius: 12, border: "1px solid #dedbd1" }}/>
         <Area dataKey="low" stackId="temperature-band" stroke="none" fill="transparent"/><Area name="Historical range" dataKey="band" stackId="temperature-band" stroke="none" fill="#efad99" fillOpacity={0.28}/>
         <Line name="Historical mean" type="monotone" dataKey="normal" stroke="#7c8c85" strokeWidth={1.5} dot={false}/><Line name={String(year)} type="monotone" dataKey="selected" stroke="#df6545" strokeWidth={2.2} dot={false}/>
@@ -384,15 +384,15 @@ function TemperatureReport({ dataset, year, days, summary }: { dataset: WeatherD
     </Panel>
     <div className="dashboard-grid">
       <Panel title="Annual temperature anomaly" eyebrow="Change across the archive" className="chart-panel">
-        <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><BarChart data={annual} margin={{ top: 8, right: 8, left: -20 }}>
-          <CartesianGrid vertical={false} stroke="#e8e5dc"/><XAxis dataKey="year" axisLine={false} tickLine={false}/><YAxis axisLine={false} tickLine={false} unit="°" width={48}/><ReferenceLine y={0} stroke="#788078"/>
+        <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><BarChart data={annual} margin={{ top: 8, right: 8, left: 8 }}>
+          <CartesianGrid vertical={false} stroke="#e8e5dc"/><XAxis dataKey="year" axisLine={false} tickLine={false}/><YAxis axisLine={false} tickLine={false} tick={yAxisTick} unit=" °C" width={68}/><ReferenceLine y={0} stroke="#788078"/>
           <Tooltip formatter={(value) => [`${Number(value) >= 0 ? "+" : ""}${fmt(Number(value))} °C`, "Anomaly"]} contentStyle={{ borderRadius: 12, border: "1px solid #dedbd1" }}/>
           <Bar dataKey="tempAnomalyC" radius={[4, 4, 0, 0]}>{annual.map((row) => <Cell key={row.year} fill={(row.tempAnomalyC ?? 0) >= 0 ? "#e76745" : "#4a86a1"}/>)}</Bar>
         </BarChart></ResponsiveContainer></div>
       </Panel>
       <Panel title="Heat and frost days" eyebrow="Threshold counts by year" className="chart-panel">
-        <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><BarChart data={annual} margin={{ top: 8, right: 8, left: -20 }}>
-          <CartesianGrid vertical={false} stroke="#e8e5dc"/><XAxis dataKey="year" axisLine={false} tickLine={false}/><YAxis axisLine={false} tickLine={false}/><Tooltip formatter={(value) => `${value} days`} contentStyle={{ borderRadius: 12, border: "1px solid #dedbd1" }}/><Legend/>
+        <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><BarChart data={annual} margin={{ top: 8, right: 8, left: 8 }}>
+          <CartesianGrid vertical={false} stroke="#e8e5dc"/><XAxis dataKey="year" axisLine={false} tickLine={false}/><YAxis axisLine={false} tickLine={false} tick={yAxisTick} width={46}/><Tooltip formatter={(value) => `${value} days`} contentStyle={{ borderRadius: 12, border: "1px solid #dedbd1" }}/><Legend/>
           <Bar name="Frost < 0°C" dataKey="frostDays" stackId="cold" fill="#4a86a1"/><Bar name="Summer ≥ 25°C" dataKey="summerDays" fill="#e9a246"/><Bar name="Tropical ≥ 30°C" dataKey="tropicalDays" fill="#e76745"/>
         </BarChart></ResponsiveContainer></div>
       </Panel>
@@ -430,8 +430,8 @@ function WindReport({ dataset, year, days, summary }: { dataset: WeatherDataset;
         </RadarChart></ResponsiveContainer></div>
       </Panel>
       <Panel title="Monthly wind peaks" eyebrow={`${year} gust vs sustained`} className="chart-panel">
-        <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><BarChart data={monthly} margin={{ top: 8, right: 8, left: -12 }}>
-          <CartesianGrid vertical={false} stroke="#e8e5dc" /><XAxis dataKey="month" axisLine={false} tickLine={false} /><YAxis axisLine={false} tickLine={false} unit=" km/h" width={72} />
+        <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><BarChart data={monthly} margin={{ top: 8, right: 8, left: 8 }}>
+          <CartesianGrid vertical={false} stroke="#e8e5dc" /><XAxis dataKey="month" axisLine={false} tickLine={false} /><YAxis axisLine={false} tickLine={false} tick={yAxisTick} unit=" km/h" width={84} />
           <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #dedbd1" }} formatter={(value) => `${fmt(Number(value), 0)} km/h`} /><Legend />
           <Bar name="Gust" dataKey="gust" fill="#805d91" radius={[5, 5, 0, 0]} /><Bar name="Sustained" dataKey="sustained" fill="#73a598" radius={[5, 5, 0, 0]} />
         </BarChart></ResponsiveContainer></div>
@@ -439,14 +439,14 @@ function WindReport({ dataset, year, days, summary }: { dataset: WeatherDataset;
     </div>
     <div className="dashboard-grid">
       <Panel title="Wind extremes through time" eyebrow="Annual gust and sustained peaks" className="chart-panel">
-        <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><LineChart data={annual} margin={{ top: 8, right: 8, left: -12 }}>
-          <CartesianGrid vertical={false} stroke="#e8e5dc"/><XAxis dataKey="year" axisLine={false} tickLine={false}/><YAxis axisLine={false} tickLine={false} unit=" km/h" width={72}/><Tooltip formatter={(value) => `${fmt(Number(value), 0)} km/h`} contentStyle={{ borderRadius: 12, border: "1px solid #dedbd1" }}/><Legend/>
+        <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><LineChart data={annual} margin={{ top: 8, right: 8, left: 8 }}>
+          <CartesianGrid vertical={false} stroke="#e8e5dc"/><XAxis dataKey="year" axisLine={false} tickLine={false}/><YAxis axisLine={false} tickLine={false} tick={yAxisTick} unit=" km/h" width={84}/><Tooltip formatter={(value) => `${fmt(Number(value), 0)} km/h`} contentStyle={{ borderRadius: 12, border: "1px solid #dedbd1" }}/><Legend/>
           <Line name="Peak gust" type="monotone" dataKey="gust" stroke="#805d91" strokeWidth={2.8} dot={{ r: 3 }}/><Line name="Peak sustained" type="monotone" dataKey="sustained" stroke="#2f7d6e" strokeWidth={2.2} dot={{ r: 3 }}/>
         </LineChart></ResponsiveContainer></div>
       </Panel>
       <Panel title="Daily gust distribution" eyebrow={`${year} · number of days`} className="chart-panel">
-        <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><BarChart data={distribution} margin={{ top: 8, right: 8, left: -20 }}>
-          <CartesianGrid vertical={false} stroke="#e8e5dc"/><XAxis dataKey="label" axisLine={false} tickLine={false}/><YAxis axisLine={false} tickLine={false}/><Tooltip formatter={(value) => [`${value} days`, "Frequency"]} contentStyle={{ borderRadius: 12, border: "1px solid #dedbd1" }}/><Bar dataKey="count" fill="#805d91" radius={[5, 5, 0, 0]}/>
+        <div className="chart-wrap"><ResponsiveContainer width="100%" height="100%"><BarChart data={distribution} margin={{ top: 8, right: 8, left: 8 }}>
+          <CartesianGrid vertical={false} stroke="#e8e5dc"/><XAxis dataKey="label" axisLine={false} tickLine={false}/><YAxis axisLine={false} tickLine={false} tick={yAxisTick} width={46}/><Tooltip formatter={(value) => [`${value} days`, "Frequency"]} contentStyle={{ borderRadius: 12, border: "1px solid #dedbd1" }}/><Bar dataKey="count" fill="#805d91" radius={[5, 5, 0, 0]}/>
         </BarChart></ResponsiveContainer></div>
       </Panel>
     </div>
